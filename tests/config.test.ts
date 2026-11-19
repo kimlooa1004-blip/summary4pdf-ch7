@@ -6,7 +6,7 @@ describe("설정읽기", () => {
     const 결과 = 설정읽기({
       OPENROUTER_API_KEY: "k",
       OPENROUTER_MODEL: "m",
-    } as NodeJS.ProcessEnv);
+    });
     expect(결과.제한시간).toBe(40000);
     expect(결과.폴백제한시간).toBe(50000);
     expect(결과.최대글자수).toBe(40000);
@@ -17,12 +17,12 @@ describe("설정읽기", () => {
       OPENROUTER_API_KEY: "k",
       OPENROUTER_MODEL: "m",
       OPENROUTER_FALLBACK_MODEL: "",
-    } as NodeJS.ProcessEnv);
+    });
     expect(결과.폴백모델).toBeNull();
   });
 
   it("키가 없으면 던진다", () => {
-    expect(() => 설정읽기({} as NodeJS.ProcessEnv)).toThrow(
+    expect(() => 설정읽기({})).toThrow(
       "OPENROUTER_API_KEY가 없습니다",
     );
   });
@@ -32,7 +32,7 @@ describe("설정읽기", () => {
       OPENROUTER_API_KEY: "k",
       OPENROUTER_MODEL: "m",
       MAX_CHARS: "1000",
-    } as NodeJS.ProcessEnv);
+    });
     expect(결과.최대글자수).toBe(1000);
   });
 
@@ -41,7 +41,7 @@ describe("설정읽기", () => {
       OPENROUTER_API_KEY: "k",
       OPENROUTER_MODEL: "m",
       MAX_CHARS: "많이",
-    } as NodeJS.ProcessEnv);
+    });
     expect(결과.최대글자수).toBe(40000);
   });
 });

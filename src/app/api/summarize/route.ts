@@ -10,7 +10,8 @@ import { 설정읽기 } from "../../../lib/config";
 import { 글자뽑기 } from "../../../lib/pdf-text";
 import { 요약하기 } from "../../../lib/model";
 
-export const runtime = "nodejs";
+// runtime은 적지 않는다. Next 16의 cacheComponents와 함께 쓸 수 없고,
+// nodejs가 어차피 기본값이다. unpdf는 Node 런타임을 필요로 한다.
 export const maxDuration = 120;
 
 const 최대바이트 = 4 * 1024 * 1024;

@@ -1,6 +1,8 @@
 // 환경변수에서 OpenRouter 설정을 읽는다.
 // 모델 이름과 제한시간을 코드에 박지 않는다. 무료 모델은 수시로 막히거나 사라진다.
 
+export type 환경꾸러미 = Record<string, string | undefined>;
+
 export type 설정 = {
   키: string;
   모델: string;
@@ -31,7 +33,12 @@ function 숫자읽기(값: string | undefined, 기본: number): number {
   return Number.isFinite(숫자) ? 숫자 : 기본;
 }
 
-export function 설정읽기(환경: NodeJS.ProcessEnv): 설정 {
+/**
+ * 환경변수 꾸러미를 받아 설정을 만든다.
+ * `process.env`보다 느슨한 타입을 받는다 — 글자 칸만 읽으므로 그걸로 충분하고,
+ * 시험에서 작은 객체를 그대로 넘길 수 있다.
+ */
+export function 설정읽기(환경: 환경꾸러미): 설정 {
   const 키 = 글자읽기(환경.OPENROUTER_API_KEY);
   if (키 === null) throw new Error("OPENROUTER_API_KEY가 없습니다");
 
