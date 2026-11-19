@@ -8,7 +8,7 @@
     "start": "next start",
     "lint": "eslint",
     "test": "vitest run",
-    "check:or": "node --env-file=.env scripts/check-openrouter.mjs",
+    "check:or": "node --env-file-if-exists=.env scripts/check-openrouter.mjs",
     "fixtures": "node tests/fixtures/make-fixtures.mjs"
   },
   "dependencies": {

@@ -10,6 +10,8 @@ export type 설정 = {
   제한시간: number;
   폴백제한시간: number;
   최대글자수: number;
+  /** OpenRouter 주소. 시험에서 가짜 서버를 가리키게 하려고 환경변수로 뺐다. */
+  기본주소: string;
 };
 
 const 기본값 = {
@@ -17,6 +19,7 @@ const 기본값 = {
   제한시간: 40000,
   폴백제한시간: 50000,
   최대글자수: 40000,
+  기본주소: "https://openrouter.ai/api/v1/chat/completions",
 } as const;
 
 /** 빈 문자열과 공백만 있는 값을 undefined와 똑같이 "없음"으로 다룬다. */
@@ -52,5 +55,6 @@ export function 설정읽기(환경: 환경꾸러미): 설정 {
       기본값.폴백제한시간,
     ),
     최대글자수: 숫자읽기(환경.MAX_CHARS, 기본값.최대글자수),
+    기본주소: 글자읽기(환경.OPENROUTER_BASE_URL) ?? 기본값.기본주소,
   };
 }

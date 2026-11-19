@@ -9,8 +9,6 @@
 import type { 설정 } from "./config";
 import { 요약파싱, type 요약 } from "./validate";
 
-const 기본주소 = "https://openrouter.ai/api/v1/chat/completions";
-
 export type 시도 = { 모델: string; 결과: string };
 
 export type 호출결과 =
@@ -95,26 +93,33 @@ async function 한번부르기(
 export async function 요약하기(
   글: string,
   설정값: 설정,
-  주소: string = 기본주소,
+  주소?: string,
 ): Promise<호출결과> {
-  const 차례: { 모델: string; 제한시간: number }[] = [
-    { 모델: 설정값.모델, 제한시간: 설정값.제한시간 },
+  const 쓸주소 = 주소 ?? 설정값.기본주소;
+
+  const 차례: { 모델: string; 제한시간: number; 폴백인가: boolean }[] = [
+    { 모델: 설정값.모델, 제한시간: 설정값.제한시간, 폴백인가: false },
   ];
   // 폴백이 설정돼 있을 때만 두 번째 시도를 준비한다.
   if (설정값.폴백모델) {
-    차례.push({ 모델: 설정값.폴백모델, 제한시간: 설정값.폴백제한시간 });
+    차례.push({
+      모델: 설정값.폴백모델,
+      제한시간: 설정값.폴백제한시간,
+      폴백인가: true,
+    });
   }
 
   const 시도기록: 시도[] = [];
 
-  for (const { 모델, 제한시간 } of 차례) {
+  for (const { 모델, 제한시간, 폴백인가 } of 차례) {
     try {
-      const 요약 = await 한번부르기(모델, 글, 설정값.키, 제한시간, 주소);
+      const 요약 = await 한번부르기(모델, 글, 설정값.키, 제한시간, 쓸주소);
       console.log(`[summarize] 성공 모델=${모델} 시도=${시도기록.length + 1}`);
       return { 성공: true, 요약, 쓴모델: 모델 };
     } catch (오류) {
       const 까닭 = (오류 as Error).message;
-      시도기록.push({ 모델, 결과: 까닭 });
+      // 1차와 폴백 이름이 비슷할 수 있으니 어느 쪽이었는지 적어 둔다 (사양 §5.3).
+      시도기록.push({ 모델: 폴백인가 ? `${모델}(폴백)` : 모델, 결과: 까닭 });
       console.log(`[summarize] 실패 모델=${모델} 까닭=${까닭}`);
     }
   }

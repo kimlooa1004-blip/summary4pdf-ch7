@@ -27,8 +27,12 @@ export default function Home() {
   const [상태값, 상태설정] = useState<상태>({ 종류: "대기" });
   const [끌고있음, 끌고있음설정] = useState(false);
   const 입력칸 = useRef<HTMLInputElement>(null);
+  // 날아가 있는 요청이 돌아와 새 파일의 결과인 양 화면을 덮는 것을 막는다.
+  // 번호가 바뀌면 그 전에 보낸 응답은 버린다.
+  const 요청번호 = useRef(0);
 
   function 파일고르기(고른것: File | null) {
+    요청번호.current += 1;
     상태설정({ 종류: "대기" });
     if (!고른것) {
       파일설정(null);
@@ -52,6 +56,10 @@ export default function Home() {
 
   async function 요약보내기() {
     if (!파일) return;
+    const 내번호 = (요청번호.current += 1);
+    /** 그 사이 다른 파일을 골랐으면 이 응답은 버린다. */
+    const 아직내차례 = () => 요청번호.current === 내번호;
+
     상태설정({ 종류: "요약중" });
 
     const 중단기 = new AbortController();
@@ -71,14 +79,20 @@ export default function Home() {
       try {
         본문 = await 응답.json();
       } catch {
+        if (!아직내차례()) return;
+        // Vercel이 함수를 끊으면 JSON이 아니라 HTML 504가 돌아온다.
+        // "115초 초과"라고 적지는 않는다 — 빨리 온 응답에 그렇게 쓰면 거짓이 된다.
         상태설정({
           종류: "실패",
           까닭: "서버가 요약을 돌려주지 않았습니다",
+          시도기록: [{ 모델: "—", 결과: "서버 무응답" }],
           도움말:
-            "서버 응답이 JSON이 아닙니다. Vercel 함수 로그에서 [summarize] 줄을 확인해 보세요.",
+            "서버 응답이 JSON이 아닙니다. Vercel의 Fluid compute가 켜져 있는지 확인하고, 함수 로그에서 [summarize] 줄을 보세요.",
         });
         return;
       }
+
+      if (!아직내차례()) return;
 
       if (본문?.성공 === true) {
         상태설정({ 종류: "성공", 결과: 본문 as 성공응답 });
@@ -93,6 +107,7 @@ export default function Home() {
         });
       }
     } catch (오류) {
+      if (!아직내차례()) return;
       const 끊김 = (오류 as { name?: string })?.name === "AbortError";
       상태설정({
         종류: "실패",
@@ -121,12 +136,15 @@ export default function Home() {
       <div
         onDragOver={(e) => {
           e.preventDefault();
+          // 요약 중에는 받지 않는다. 받으면 앞 파일의 결과가 새 파일 이름 아래 뜬다.
+          if (진행중) return;
           끌고있음설정(true);
         }}
         onDragLeave={() => 끌고있음설정(false)}
         onDrop={(e) => {
           e.preventDefault();
           끌고있음설정(false);
+          if (진행중) return;
           파일고르기(e.dataTransfer.files?.[0] ?? null);
         }}
         className={`mt-8 rounded-xl border-2 border-dashed p-8 text-center transition-colors ${

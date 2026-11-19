@@ -45,3 +45,6 @@ next-env.d.ts
 
 # superpowers 작업 공간 (계획 실행용 임시 기록)
 /.superpowers
+
+# next dev가 매번 다시 만든다
+/AGENTS.md
