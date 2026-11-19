@@ -1,0 +1,8 @@
+#!/bin/sh
+# 커밋에 비밀이 섞이는 것을 막는다: .env 파일과 OpenRouter 키(sk-or-...).
+if git diff --cached --name-only | grep -E '(^|/)\.env($|\.)' | grep -v '\.env\.example$' >/dev/null; then
+  echo "ERROR: .env 파일이 스테이지에 있습니다. 빼세요: git reset HEAD <file>" >&2; exit 1
+fi
+if git diff --cached -U0 | grep -E '^\+.*sk-or-[A-Za-z0-9_-]{16,}' >/dev/null; then
+  echo "ERROR: OpenRouter API 키로 보이는 문자열이 staged 변경에 있습니다." >&2; exit 1
+fi
